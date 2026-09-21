@@ -22,6 +22,15 @@ from app.modules.conditions.services import (
 router = APIRouter(prefix="/conditions", tags=["[conditions] conditions"])
 
 
+@router.post(
+    "/", response_model=ConditionResponse, summary="Create condition.", status_code=201
+)
+async def create_condition(
+    payload: ConditionCreate, db: AsyncSession = Depends(get_db)
+):
+    return await create_condition_service(payload, db)
+
+
 @router.get(
     "/",
     response_model=list[ConditionResponse],
@@ -49,15 +58,6 @@ async def get_condition_by_id(
         return await get_condition_service(condition_id, db)
     except ConditionNotFoundError as err:
         raise HTTPException(status_code=404, detail="Condition not found.") from err
-
-
-@router.post(
-    "/", response_model=ConditionResponse, summary="Create condition.", status_code=201
-)
-async def create_condition(
-    payload: ConditionCreate, db: AsyncSession = Depends(get_db)
-):
-    return await create_condition_service(payload, db)
 
 
 @router.patch(
