@@ -76,6 +76,10 @@ select = ["E", "F", "I", "B", "UP", "SIM"]
 ignore = ["B008"]
 
 
+[tool.ruff.lint.per-file-ignores]
+"app/models/*.py" = ["F821"]
+
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

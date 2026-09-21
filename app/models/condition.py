@@ -20,9 +20,7 @@ class Condition(Base):
         Enum(ComparisonOperator),
         nullable=False,
     )
-    value: Mapped[str | float | int | bool] = mapped_column(
-        JSONB, nullable=False
-    )
+    value: Mapped[str | float | int | bool] = mapped_column(JSONB, nullable=False)
 
     rules: Mapped[list["Rule"]] = relationship(
         secondary=rule_condition_association, back_populates="conditions"

@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,9 +16,7 @@ class Action(Base):
     # TO DO: add type (set a value, send an email and etc.)
     # BY DEFAULT: SET
     field: Mapped[str] = mapped_column(String(50), nullable=False)
-    value: Mapped[str | float | int | bool] = mapped_column(
-        JSONB, nullable=False
-    )
+    value: Mapped[str | float | int | bool] = mapped_column(JSONB, nullable=False)
 
     rule_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

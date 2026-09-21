@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy import DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -20,9 +20,7 @@ class Evaluation(Base):
         nullable=False,
     )
 
-    input: Mapped[dict] = mapped_column(
-        JSONB, nullable=False
-    )
+    input: Mapped[dict] = mapped_column(JSONB, nullable=False)
     evaluation_rules: Mapped[list["EvaluationRule"]] = relationship(
         back_populates="evaluation",
     )
