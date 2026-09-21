@@ -5,7 +5,7 @@ from sqlalchemy.future import select
 
 from app.core.exceptions import ActionNotFoundError
 from app.models import Action
-from app.modules.conditions.schemas import (
+from app.modules.actions.schemas import (
     ActionCreate,
     ActionDeleteResponse,
     ActionResponse,
