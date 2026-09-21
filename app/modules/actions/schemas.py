@@ -13,7 +13,11 @@ class ActionCreate(BaseModel):
 
 
 class ActionResponse(BaseModel):
-    id: uuid.UUID = Field(..., description="Action ID.")
+    id: uuid.UUID = Field(
+        ...,
+        description="Action ID.",
+        examples=["550e8400-e29b-41d4-a716-446655440000"],
+    )
     field: str = Field(..., description="Name of the field.", examples=["weather"])
     value: JsonValue = Field(
         ...,

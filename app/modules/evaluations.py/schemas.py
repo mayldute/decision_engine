@@ -13,15 +13,27 @@ class EvaluationCreate(BaseModel):
 
 
 class EvaluationRuleResponse(BaseModel):
-    evaluation_id: uuid.UUID = Field(..., description="Evaluation ID.")
-    rule_id: uuid.UUID = Field(..., description="Rule ID.")
+    evaluation_id: uuid.UUID = Field(
+        ...,
+        description="Evaluation ID.",
+        examples=["550e8400-e29b-41d4-a716-446655440000"],
+    )
+    rule_id: uuid.UUID = Field(
+        ...,
+        description="Rule ID.",
+        examples=["660e8400-e29b-41d4-a716-446655440001"],
+    )
     is_matched: bool = Field(
         ..., description="Whether the rule matched the input.", examples=[True]
     )
 
 
 class EvaluationResponse(BaseModel):
-    id: uuid.UUID = Field(..., description="Evaluation ID.")
+    id: uuid.UUID = Field(
+        ...,
+        description="Evaluation ID.",
+        examples=["770e8400-e29b-41d4-a716-446655440002"],
+    )
     timestamp: datetime = Field(
         ..., description="Evaluation timestamp.", examples=["2026-09-21T15:30:00Z"]
     )

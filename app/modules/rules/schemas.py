@@ -47,7 +47,11 @@ class RuleCreate(BaseModel):
 
 
 class RuleResponse(BaseModel):
-    id: uuid.UUID = Field(..., description="Rule ID.")
+    id: uuid.UUID = Field(
+        ...,
+        description="Rule ID.",
+        examples=["550e8400-e29b-41d4-a716-446655440000"],
+    )
     name: str = Field(..., description="Name of the rule.", examples=["1st rule"])
     description: str | None = Field(
         ...,
