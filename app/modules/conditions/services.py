@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from app.core.exceptions import ConditionNotFoundError
 from app.models import Condition
@@ -32,6 +33,17 @@ async def create_condition_service(
     await db.refresh(condition)
 
     return ConditionResponse.model_validate(condition)
+
+
+async def get_all_conditions_service(
+    skip: int, limit: int, db: AsyncSession
+) -> list[ConditionResponse]:
+    result = await db.execute(
+        select(Condition).order_by(Condition.id).offset(skip).limit(limit)
+    )
+    conditions = result.scalars().all()
+
+    return [ConditionResponse.model_validate(condition) for condition in conditions]
 
 
 async def get_condition_service(
