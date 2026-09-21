@@ -23,9 +23,9 @@ async def get_action_or_raise(action_id: uuid.UUID, db: AsyncSession) -> Action:
 
 
 async def create_action_service(
-    payload: ActionCreate, db: AsyncSession
+    rule_id: uuid.UUID, payload: ActionCreate, db: AsyncSession
 ) -> ActionResponse:
-    action = Action(**payload.model_dump())
+    action = Action(rule_id=rule_id, **payload.model_dump())
     db.add(action)
     await db.commit()
     await db.refresh(action)

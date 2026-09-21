@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 
 from app.core.config import settings
-from app.modules.conditions.routers import router as condition_router
-from app.modules.actions.routers import router as action_router
+from app.modules.conditions.routes import router as condition_router
 
 
 def create_application() -> FastAPI:
@@ -13,7 +12,6 @@ def create_application() -> FastAPI:
     )
 
     application.include_router(condition_router, prefix="/api/v1")
-    application.include_router(action_router, prefix="/api/v1")
 
     @application.get("/health", tags=["health"])
     async def health_check() -> dict[str, str]:
