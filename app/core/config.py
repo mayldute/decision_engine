@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -15,6 +15,7 @@ class DatabaseSettings(BaseModel):
     db_port: str
     db_name: str
     database_url: str
+    test_database_url: str
 
 
 class JwtSettings(BaseModel):
@@ -29,10 +30,11 @@ class Settings(BaseSettings):
     database: DatabaseSettings
     jwt: JwtSettings
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        env_nested_delimiter = "__"  # allows env vars like APP__NAME
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_nested_delimiter="__",
+    )
 
 
 settings = Settings()

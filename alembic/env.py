@@ -14,7 +14,13 @@ from app.models import *
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option("sqlalchemy.url", settings.database.database_url)
+database_url = (
+    settings.database.test_database_url
+    if settings.app.env == "test"
+    else settings.database.database_url
+)
+
+config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
