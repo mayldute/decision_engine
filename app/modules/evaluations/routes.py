@@ -11,7 +11,7 @@ from app.modules.evaluations.services import (
     get_evaluation_service,
 )
 
-router = APIRouter(prefix="/evaluations", tags="[evaluations] evaluations")
+router = APIRouter(prefix="/evaluations", tags=["[evaluations] evaluations"])
 
 
 @router.get(

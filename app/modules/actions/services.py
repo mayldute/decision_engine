@@ -1,7 +1,7 @@
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 from app.core.exceptions import ActionNotFoundError
 from app.models import Action

@@ -1,8 +1,8 @@
 import uuid
 
-from sqlalchemy import selectinload
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import EvaluationNotFoundError
 from app.models.evaluation import Evaluation
