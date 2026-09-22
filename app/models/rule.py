@@ -53,16 +53,20 @@ class Rule(Base):
         secondary=rule_condition_association, back_populates="rules"
     )
 
-    action: Mapped["Action"] = relationship(
-        back_populates="rule",
-        uselist=False,
+    action_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("actions.id"),
+        nullable=False,
     )
+
+    action: Mapped["Action"] = relationship(back_populates="rules")
 
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey(
             "users.id",
             ondelete="CASCADE",
-        )
+        ),
+        nullable=False,
     )
     user: Mapped["User"] = relationship(back_populates="rules")
 
