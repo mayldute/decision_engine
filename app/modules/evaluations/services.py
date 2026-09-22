@@ -34,6 +34,7 @@ async def create_evaluation_service(
             evaluation=evaluation,
             rule_id=result.rule_id,
             is_matched=result.is_matched,
+            resulting_input=result.resulting_input,
         )
         db.add(evaluation_rule)
 

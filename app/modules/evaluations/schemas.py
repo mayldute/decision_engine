@@ -27,6 +27,12 @@ class EvaluationRuleResponse(BaseModel):
         ..., description="Whether the rule matched the input.", examples=[True]
     )
 
+    resulting_input: dict = Field(
+        ...,
+        description="Action result.",
+        examples=[{"age": 10, "country": "US", "amount": 1500}],
+    )
+
 
 class EvaluationResponse(BaseModel):
     id: uuid.UUID = Field(
@@ -68,4 +74,9 @@ class EvaluationRuleCreate(BaseModel):
     )
     is_matched: bool = Field(
         ..., description="Whether the rule matched the input.", examples=[True]
+    )
+    resulting_input: dict = Field(
+        ...,
+        description="Action result.",
+        examples=[{"age": 10, "country": "US", "amount": 1500}],
     )

@@ -1,7 +1,7 @@
 import uuid
 
 from sqlalchemy import Boolean, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -26,6 +26,8 @@ class EvaluationRule(Base):
         Boolean,
         nullable=False,
     )
+
+    resulting_input: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
     evaluation: Mapped["Evaluation"] = relationship(
         back_populates="evaluation_rules",
