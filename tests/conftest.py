@@ -47,9 +47,20 @@ async def db_session():
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def clean_conditions():
+async def clean_database():
     async with test_engine.connect() as connection:
-        await connection.execute(text("TRUNCATE TABLE conditions CASCADE"))
+        await connection.execute(
+            text(
+                """
+                TRUNCATE TABLE
+                    conditions,
+                    actions,
+                    rules,
+                    evaluations
+                CASCADE
+                """
+            )
+        )
         await connection.commit()
 
 
@@ -100,92 +111,30 @@ async def condition_data(client):
 
 
 @pytest_asyncio.fixture
-async def user(db_session):
-    user = User(
-        nickname="testuser",
-        email="test@example.com",
-    )
-
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-
-    return user
-
-
-@pytest_asyncio.fixture
-async def rule(db_session, user):
-    rule = Rule(
-        user_id=user.id,
-        name="Test rule",
-        description="Test rule description",
-        logical_operator=None,
-        priority=1,
-        is_active=True,
-    )
-
-    db_session.add(rule)
-    await db_session.commit()
-    await db_session.refresh(rule)
-
-    return rule
-
-
-@pytest_asyncio.fixture
-async def rules(db_session, user):
-    result = []
-
-    for i in range(5):
-        rule = Rule(
-            user_id=user.id,
-            name=f"Test rule {i}",
-            description=f"Test rule {i}",
-            logical_operator=None,
-            priority=i + 1,
-            is_active=True,
-        )
-
-        db_session.add(rule)
-        result.append(rule)
-
-    await db_session.commit()
-
-    for rule in result:
-        await db_session.refresh(rule)
-
-    return result
-
-
-@pytest_asyncio.fixture
-async def action(db_session, rule):
+async def action(db_session):
     payload = ActionCreate(
         field="temperature",
         value=15.5,
     )
 
     return await create_action_service(
-        rule_id=rule.id,
         payload=payload,
         db=db_session,
     )
 
 
 @pytest_asyncio.fixture
-async def actions(db_session, rules):
-    result = []
+async def action_data(client):
+    payload = {
+        "field": "temperature",
+        "value": 15.5,
+    }
 
-    for i, rule in enumerate(rules):
-        payload = ActionCreate(
-            field=f"temperature_{i}",
-            value=i,
-        )
+    response = await client.post(
+        "/api/v1/actions/",
+        json=payload,
+    )
 
-        action = await create_action_service(
-            rule_id=rule.id,
-            payload=payload,
-            db=db_session,
-        )
+    assert response.status_code == 201
 
-        result.append(action)
-
-    return result
+    return response.json()

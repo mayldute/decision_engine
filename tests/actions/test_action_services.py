@@ -3,8 +3,9 @@ import uuid
 import pytest
 
 from app.core.exceptions import ActionNotFoundError
-from app.modules.actions.schemas import ActionUpdate
+from app.modules.actions.schemas import ActionUpdate, ActionCreate
 from app.modules.actions.services import (
+    create_action_service,
     delete_action_service,
     get_action_or_raise,
     get_action_service,
@@ -32,7 +33,15 @@ async def test_get_all_actions(action, db_session):
     assert created_action.value == 15.5
 
 
-async def test_get_all_actions_pagination(actions, db_session):
+async def test_get_all_actions_pagination(db_session):
+    for i in range(5):
+        payload = ActionCreate(
+                field=f"temperature_{i}",
+                value=i,
+            )
+
+        await create_action_service(payload, db_session)
+        
     first_page = await get_all_actions_service(
         skip=0,
         limit=2,
@@ -55,13 +64,9 @@ async def test_get_all_actions_pagination(actions, db_session):
     assert len(second_page) == 2
     assert len(last_page) == 1
 
-    first_ids = {action.id for action in first_page}
-    second_ids = {action.id for action in second_page}
-    last_ids = {action.id for action in last_page}
-
-    assert first_ids.isdisjoint(second_ids)
-    assert first_ids.isdisjoint(last_ids)
-    assert second_ids.isdisjoint(last_ids)
+    assert first_page[0].id not in {action.id for action in second_page}
+    assert first_page[0].id not in {action.id for action in last_page}
+    assert second_page[0].id not in {action.id for action in last_page}
 
 
 async def test_get_action_or_raise(db_session):
