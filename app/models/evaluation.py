@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +21,16 @@ class Evaluation(Base):
     )
 
     input: Mapped[dict] = mapped_column(JSONB, nullable=False)
+
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+    )
+    user: Mapped["User"] = relationship(back_populates="evaluations")
+
     evaluation_rules: Mapped[list["EvaluationRule"]] = relationship(
         back_populates="evaluation",
     )

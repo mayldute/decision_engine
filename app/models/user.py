@@ -29,3 +29,5 @@ class User(Base):
     )
 
     rules: Mapped[list["Rule"]] = relationship(back_populates="user")
+
+    evaluations: Mapped[list["Evaluation"]] = relationship(back_populates="user")

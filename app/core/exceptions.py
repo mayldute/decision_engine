@@ -16,3 +16,7 @@ class RuleMustHaveConditionError(Exception):
 
 class RuleNoLogicalOperator(Exception):
     pass
+
+
+class EvaluationNotFoundError(Exception):
+    pass
