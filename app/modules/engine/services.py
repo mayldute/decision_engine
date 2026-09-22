@@ -9,7 +9,9 @@ from app.modules.evaluations.schemas import EvaluationCreate, EvaluationRuleCrea
 from app.modules.evaluations.services import create_evaluation_service
 
 
-async def engine(user_id: uuid.UUID, input_data: dict, db: AsyncSession) -> dict:
+async def engine_service(
+    user_id: uuid.UUID, input_data: dict, db: AsyncSession
+) -> dict:
     query_result = await db.execute(
         select(Rule)
         .options(
