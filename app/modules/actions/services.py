@@ -26,7 +26,7 @@ async def create_action_service(
     payload: ActionCreate, db: AsyncSession
 ) -> ActionResponse:
     action = Action(**payload.model_dump())
-    
+
     db.add(action)
     await db.commit()
     await db.refresh(action)

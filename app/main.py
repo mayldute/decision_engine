@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
 from app.core.config import settings
-from app.modules.conditions.routes import router as condition_router
 from app.modules.actions.routes import router as action_router
+from app.modules.conditions.routes import router as condition_router
 
 
 def create_application() -> FastAPI:

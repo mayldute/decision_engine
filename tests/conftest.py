@@ -11,7 +11,6 @@ from sqlalchemy.pool import NullPool
 from app.core.config import settings
 from app.database.dependencies import get_db
 from app.main import app
-from app.models import Rule, User
 from app.modules.actions.schemas import ActionCreate
 from app.modules.actions.services import create_action_service
 from app.modules.conditions.schemas import ConditionCreate

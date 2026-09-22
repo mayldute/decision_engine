@@ -48,13 +48,19 @@ class RuleCreate(BaseModel):
         action_id = values.get("action_id")
         new_action = values.get("new_action")
 
-        if condition_ids and new_conditions:
+        if condition_ids is not None and new_conditions is not None:
             raise ValueError(
                 "Provide either condition_ids or new_conditions, not both."
             )
 
-        if not condition_ids and not new_conditions:
+        if condition_ids is None and new_conditions is None:
             raise ValueError("Either condition_ids or new_conditions must be provided.")
+
+        if condition_ids is not None and not condition_ids:
+            raise ValueError("At least one condition must be provided.")
+
+        if new_conditions is not None and not new_conditions:
+            raise ValueError("At least one condition must be provided.")
 
         if action_id is not None and new_action is not None:
             raise ValueError("Provide either action_id or new_action, not both.")
@@ -62,7 +68,7 @@ class RuleCreate(BaseModel):
         if action_id is None and new_action is None:
             raise ValueError("Either action_id or new_action must be provided.")
 
-        conditions = condition_ids or new_conditions
+        conditions = condition_ids if condition_ids is not None else new_conditions
 
         if len(conditions) > 1 and logical_operator is None:
             raise ValueError(
@@ -145,26 +151,18 @@ class RuleUpdate(BaseModel):
 
     @model_validator(mode="before")
     def validate_rule(cls, values):
-        logical_operator = values.get("logical_operator")
         condition_ids = values.get("condition_ids")
         new_conditions = values.get("new_conditions")
         action_id = values.get("action_id")
         new_action = values.get("new_action")
 
-        if condition_ids and new_conditions:
+        if condition_ids is not None and new_conditions is not None:
             raise ValueError(
                 "Provide either condition_ids or new_conditions, not both."
             )
 
         if action_id is not None and new_action is not None:
             raise ValueError("Provide either action_id or new_action, not both.")
-
-        conditions = condition_ids or new_conditions
-
-        if conditions and len(conditions) > 1 and logical_operator is None:
-            raise ValueError(
-                "Logical operator cannot be None if there is more than one condition."
-            )
 
         return values
 

@@ -3,7 +3,7 @@ import uuid
 import pytest
 
 from app.core.exceptions import ActionNotFoundError
-from app.modules.actions.schemas import ActionUpdate, ActionCreate
+from app.modules.actions.schemas import ActionCreate, ActionUpdate
 from app.modules.actions.services import (
     create_action_service,
     delete_action_service,
@@ -36,12 +36,12 @@ async def test_get_all_actions(action, db_session):
 async def test_get_all_actions_pagination(db_session):
     for i in range(5):
         payload = ActionCreate(
-                field=f"temperature_{i}",
-                value=i,
-            )
+            field=f"temperature_{i}",
+            value=i,
+        )
 
         await create_action_service(payload, db_session)
-        
+
     first_page = await get_all_actions_service(
         skip=0,
         limit=2,
