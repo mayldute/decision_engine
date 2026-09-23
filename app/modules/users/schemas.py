@@ -81,4 +81,4 @@ class Token(BaseModel):
     refresh_token: str = Field(
         ..., description="JWT refresh token", examples=["eyJhbGciOiJIUzI1..."]
     )
-    token_type: str = Field(..., description="Token type", example="bearer")
+    token_type: str = Field(..., description="Token type", examples=["bearer"])

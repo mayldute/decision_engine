@@ -1,11 +1,11 @@
-async def test_create_condition(client):
+async def test_create_condition(authenticated_client):
     payload = {
         "field": "temperature",
         "operator": ">",
         "value": 25,
     }
 
-    response = await client.post("/api/v1/conditions/", json=payload)
+    response = await authenticated_client.post("/api/v1/conditions/", json=payload)
 
     assert response.status_code == 201
 
@@ -17,9 +17,9 @@ async def test_create_condition(client):
     assert "id" in data
 
 
-async def test_get_all_conditions_pagination(client):
+async def test_get_all_conditions_pagination(authenticated_client):
     for i in range(5):
-        response = await client.post(
+        response = await authenticated_client.post(
             "/api/v1/conditions/",
             json={
                 "field": f"temperature_{i}",
@@ -29,7 +29,7 @@ async def test_get_all_conditions_pagination(client):
         )
         assert response.status_code == 201
 
-    response = await client.get(
+    response = await authenticated_client.get(
         "/api/v1/conditions/",
         params={"skip": 0, "limit": 2},
     )
@@ -41,8 +41,10 @@ async def test_get_all_conditions_pagination(client):
     assert len(data) == 2
 
 
-async def test_get_condition(client, condition_data):
-    response = await client.get(f"/api/v1/conditions/{condition_data['id']}")
+async def test_get_condition(authenticated_client, condition_data):
+    response = await authenticated_client.get(
+        f"/api/v1/conditions/{condition_data['id']}"
+    )
 
     assert response.status_code == 200
 
@@ -54,8 +56,8 @@ async def test_get_condition(client, condition_data):
     assert data["value"] == 25
 
 
-async def test_update_condition(client, condition_data):
-    response = await client.patch(
+async def test_update_condition(authenticated_client, condition_data):
+    response = await authenticated_client.patch(
         f"/api/v1/conditions/{condition_data['id']}",
         json={"value": 10},
     )
@@ -69,8 +71,10 @@ async def test_update_condition(client, condition_data):
     assert data["value"] == 10
 
 
-async def test_delete_condition(client, condition_data):
-    response = await client.delete(f"/api/v1/conditions/{condition_data['id']}")
+async def test_delete_condition(authenticated_client, condition_data):
+    response = await authenticated_client.delete(
+        f"/api/v1/conditions/{condition_data['id']}"
+    )
 
     assert response.status_code == 200
 

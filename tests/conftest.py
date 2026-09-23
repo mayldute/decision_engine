@@ -9,7 +9,10 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
+from app.core.security import hash_password
+from app.core.tokens import create_access_token
 from app.database.dependencies import get_db
+from app.database.models.user import User
 from app.main import app
 from app.modules.actions.schemas import ActionCreate
 from app.modules.actions.services import create_action_service
@@ -64,42 +67,95 @@ async def clean_database():
 
 
 @pytest_asyncio.fixture
-async def client():
+async def authenticated_client(db_session):
+    user = User(
+        nickname="testuser",
+        email="test@example.com",
+        hashed_password=hash_password("TestPassword123"),
+    )
+
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    access_token = create_access_token(
+        {
+            "sub": str(user.id),
+            "email": user.email,
+        }
+    )
+
     async def override_get_db():
-        async with test_session_maker() as session:
-            yield session
+        yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
-    ) as client:
-        yield client
+        headers={
+            "Authorization": f"Bearer {access_token}",
+        },
+    ) as authenticated_client:
+        yield authenticated_client
 
     app.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture
-async def condition(db_session):
+async def user(db_session):
+    user = User(
+        nickname="testuser",
+        email="test@example.com",
+        hashed_password="hashed_password",
+    )
+
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    return user
+
+
+@pytest_asyncio.fixture
+async def another_user(db_session):
+    another_user = User(
+        nickname="anothertestuser",
+        email="anothertest@example.com",
+        hashed_password="another_hashed_password",
+    )
+
+    db_session.add(another_user)
+    await db_session.commit()
+    await db_session.refresh(another_user)
+
+    return another_user
+
+
+@pytest_asyncio.fixture
+async def condition(user, db_session):
     payload = ConditionCreate(
         field="temperature",
         operator=">",
         value=25,
     )
 
-    return await create_condition_service(payload, db_session)
+    return await create_condition_service(
+        payload=payload,
+        current_user=user,
+        db=db_session,
+    )
 
 
 @pytest_asyncio.fixture
-async def condition_data(client):
+async def condition_data(authenticated_client):
     payload = {
         "field": "temperature",
         "operator": ">",
         "value": 25,
     }
 
-    response = await client.post(
+    response = await authenticated_client.post(
         "/api/v1/conditions/",
         json=payload,
     )
@@ -110,7 +166,7 @@ async def condition_data(client):
 
 
 @pytest_asyncio.fixture
-async def action(db_session):
+async def action(user, db_session):
     payload = ActionCreate(
         field="temperature",
         value=15.5,
@@ -118,18 +174,19 @@ async def action(db_session):
 
     return await create_action_service(
         payload=payload,
+        current_user=user,
         db=db_session,
     )
 
 
 @pytest_asyncio.fixture
-async def action_data(client):
+async def action_data(authenticated_client):
     payload = {
         "field": "temperature",
         "value": 15.5,
     }
 
-    response = await client.post(
+    response = await authenticated_client.post(
         "/api/v1/actions/",
         json=payload,
     )

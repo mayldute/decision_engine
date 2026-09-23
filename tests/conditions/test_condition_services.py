@@ -14,17 +14,18 @@ from app.modules.conditions.services import (
 )
 
 
-async def test_create_condition(condition, db_session):
+async def test_create_condition(condition):
     assert condition.field == "temperature"
     assert condition.operator == ">"
     assert condition.value == 25
     assert condition.id is not None
 
 
-async def test_get_all_conditions(condition, db_session):
+async def test_get_all_conditions(condition, user, db_session):
     result = await get_all_conditions_service(
         skip=0,
         limit=2,
+        current_user=user,
         db=db_session,
     )
 
@@ -35,7 +36,7 @@ async def test_get_all_conditions(condition, db_session):
     assert created_condition.value == 25
 
 
-async def test_get_all_conditions_pagination(db_session):
+async def test_get_all_conditions_pagination(user, db_session):
     for i in range(5):
         payload = ConditionCreate(
             field=f"temperature_{i}",
@@ -43,23 +44,26 @@ async def test_get_all_conditions_pagination(db_session):
             value=i,
         )
 
-        await create_condition_service(payload, db_session)
+        await create_condition_service(payload, user, db_session)
 
     first_page = await get_all_conditions_service(
         skip=0,
         limit=2,
+        current_user=user,
         db=db_session,
     )
 
     second_page = await get_all_conditions_service(
         skip=2,
         limit=2,
+        current_user=user,
         db=db_session,
     )
 
     last_page = await get_all_conditions_service(
         skip=4,
         limit=2,
+        current_user=user,
         db=db_session,
     )
 
@@ -72,17 +76,17 @@ async def test_get_all_conditions_pagination(db_session):
     assert second_page[0].id not in {condition.id for condition in last_page}
 
 
-async def test_get_condition_or_raise(db_session):
+async def test_get_condition_or_raise(user, db_session):
     condition_id = uuid.UUID("550e8400-e29b-41d4-a716-446655440000")
 
     with pytest.raises(ConditionNotFoundError) as exc_info:
-        await get_condition_or_raise(condition_id, db_session)
+        await get_condition_or_raise(condition_id, user, db_session)
 
     assert str(condition_id) in str(exc_info.value)
 
 
-async def test_get_condition(condition, db_session):
-    result = await get_condition_service(condition.id, db_session)
+async def test_get_condition(condition, user, db_session):
+    result = await get_condition_service(condition.id, user, db_session)
 
     assert result.id == condition.id
     assert result.field == "temperature"
@@ -90,18 +94,18 @@ async def test_get_condition(condition, db_session):
     assert result.value == 25
 
 
-async def test_update_condition(condition, db_session):
+async def test_update_condition(condition, user, db_session):
     new_data = ConditionUpdate(value=10)
 
-    result = await update_condition_service(condition.id, new_data, db_session)
+    result = await update_condition_service(condition.id, new_data, user, db_session)
 
     assert result.field == "temperature"
     assert result.operator == ">"
     assert result.value == 10
 
 
-async def test_delete_condition(condition, db_session):
-    result = await delete_condition_service(condition.id, db_session)
+async def test_delete_condition(condition, user, db_session):
+    result = await delete_condition_service(condition.id, user, db_session)
 
     assert result.condition_id == condition.id
     assert result.message == "Condition successfully deleted."
