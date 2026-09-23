@@ -9,9 +9,9 @@ class UserCreate(BaseModel):
         ..., description="User's email.", examples=["user123@example.com"]
     )
     password1: str = Field(
-        ..., 
-        min_length=8, 
-        description="User's password.", 
+        ...,
+        min_length=8,
+        description="User's password.",
         examples=["StrongPass123!"],
     )
     password2: str = Field(

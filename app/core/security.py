@@ -22,3 +22,10 @@ def hash_token(token: str) -> str:
         raise ValueError("Token can not be empty.")
 
     return pwd_context.hash(token)
+
+
+def verify_token(plain_token: str, hashed_token: str) -> bool:
+    if not plain_token or not hash_password:
+        raise ValueError("Token or hashed password cannot be empty.")
+
+    return pwd_context.verify(plain_token, hashed_token)

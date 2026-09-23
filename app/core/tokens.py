@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.security import hash_token
 from app.database.models import RefreshToken, User
+from app.modules.users.schemas import Token
 
 SECRET_KEY = settings.jwt.jwt_secret_key
 ALGORITHM = settings.jwt.jwt_algorithm
@@ -40,7 +41,7 @@ def create_refresh_token(data: dict, expires_delta: timedelta = None) -> str:
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-async def get_tokens_for_user(user: User, db: AsyncSession) -> dict:
+async def get_tokens_for_user(user: User, db: AsyncSession) -> Token:
     user_data = {
         "sub": str(user.id),
         "email": user.email,
@@ -64,11 +65,11 @@ async def get_tokens_for_user(user: User, db: AsyncSession) -> dict:
 
     await db.commit()
 
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-    }
+    return Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+    )
 
 
 def create_activation_token(user_id: uuid.UUID) -> str:

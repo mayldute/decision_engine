@@ -20,3 +20,27 @@ class RuleNoLogicalOperator(Exception):
 
 class EvaluationNotFoundError(Exception):
     pass
+
+
+class UserNotFoundError(Exception):
+    pass
+
+
+class UserWrongPasswordError(Exception):
+    pass
+
+
+class UserAlreadyRegisteredError(Exception):
+    pass
+
+
+class TokenInvalidTypeError(Exception):
+    pass
+
+
+class TokenInvalidOrExpiredError(Exception):
+    pass
+
+
+class TokenUserIDMissingError(Exception):
+    pass
