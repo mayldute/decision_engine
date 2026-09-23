@@ -5,8 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import EvaluationNotFoundError
-from app.models.evaluation import Evaluation
-from app.models.evaluation_rule import EvaluationRule
+from app.database.models.evaluation import Evaluation
+from app.database.models.evaluation_rule import EvaluationRule
+from app.database.models.user import User
 from app.modules.evaluations.schemas import (
     EvaluationCreate,
     EvaluationListResponse,
@@ -16,15 +17,15 @@ from app.modules.evaluations.schemas import (
 
 
 async def create_evaluation_service(
-    user_id: uuid.UUID,
     payload: EvaluationCreate,
     evaluation_results: list[EvaluationRuleCreate],
+    current_user: User,
     db: AsyncSession,
 ) -> EvaluationResponse:
 
     evaluation = Evaluation(
         input=payload.input,
-        user_id=user_id,
+        user_id=current_user.id,
     )
 
     db.add(evaluation)
@@ -42,11 +43,11 @@ async def create_evaluation_service(
 
 
 async def get_all_evaluations_service(
-    user_id: uuid.UUID, skip: int, limit: int, db: AsyncSession
+    skip: int, limit: int, current_user: User, db: AsyncSession
 ) -> list[EvaluationListResponse]:
     result = await db.execute(
         select(Evaluation)
-        .where(Evaluation.user_id == user_id)
+        .where(Evaluation.user_id == current_user.id)
         .order_by(Evaluation.timestamp.desc())
         .offset(skip)
         .limit(limit)
@@ -60,7 +61,7 @@ async def get_all_evaluations_service(
 
 
 async def get_evaluation_service(
-    user_id: uuid.UUID, evaluation_id: uuid.UUID, db: AsyncSession
+    evaluation_id: uuid.UUID, current_user: User, db: AsyncSession
 ) -> EvaluationResponse:
     result = await db.execute(
         select(Evaluation)
@@ -69,7 +70,7 @@ async def get_evaluation_service(
         )
         .where(
             Evaluation.id == evaluation_id,
-            Evaluation.user_id == user_id,
+            Evaluation.user_id == current_user.id,
         )
     )
 

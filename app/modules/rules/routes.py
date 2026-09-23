@@ -1,14 +1,13 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
     RuleMustHaveConditionError,
     RuleNoLogicalOperator,
     RuleNotFoundError,
 )
-from app.database.dependencies import get_db
+from app.database.dependencies import CommonContext, get_common_context
 from app.modules.rules.schemas import (
     RuleCreate,
     RuleDeleteResponse,
@@ -33,9 +32,9 @@ router = APIRouter(prefix="/rules", tags=["[rules] rules"])
     status_code=201,
 )
 async def create_rule(
-    user_id: uuid.UUID, payload: RuleCreate, db: AsyncSession = Depends(get_db)
+    payload: RuleCreate, context: CommonContext = Depends(get_common_context)
 ):
-    return await create_rule_service(user_id, payload, db)
+    return await create_rule_service(payload, context.current_user, context.db)
 
 
 @router.get(
@@ -45,12 +44,11 @@ async def create_rule(
     status_code=200,
 )
 async def get_rules(
-    user_id: uuid.UUID,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    db: AsyncSession = Depends(get_db),
+    context: CommonContext = Depends(get_common_context),
 ):
-    return await get_all_rules_service(user_id, skip, limit, db)
+    return await get_all_rules_service(skip, limit, context.current_user, context.db)
 
 
 @router.get(
@@ -60,10 +58,10 @@ async def get_rules(
     status_code=200,
 )
 async def get_rule_by_id(
-    user_id: uuid.UUID, rule_id: uuid.UUID, db: AsyncSession = Depends(get_db)
+    rule_id: uuid.UUID, context: CommonContext = Depends(get_common_context)
 ):
     try:
-        return await get_rule_service(user_id, rule_id, db)
+        return await get_rule_service(rule_id, context.current_user, context.db)
     except RuleNotFoundError as err:
         raise HTTPException(status_code=404, detail="Rule not found.") from err
 
@@ -75,13 +73,14 @@ async def get_rule_by_id(
     status_code=200,
 )
 async def update_rule(
-    user_id: uuid.UUID,
     rule_id: uuid.UUID,
     payload: RuleUpdate,
-    db: AsyncSession = Depends(get_db),
+    context: CommonContext = Depends(get_common_context),
 ):
     try:
-        return await update_rule_service(user_id, rule_id, payload, db)
+        return await update_rule_service(
+            rule_id, payload, context.current_user, context.db
+        )
     except RuleMustHaveConditionError as err:
         raise HTTPException(
             status_code=400, detail="At least one condition must be provided."
@@ -105,9 +104,9 @@ async def update_rule(
     status_code=200,
 )
 async def delete_rule(
-    user_id: uuid.UUID, rule_id: uuid.UUID, db: AsyncSession = Depends(get_db)
+    rule_id: uuid.UUID, context: CommonContext = Depends(get_common_context)
 ):
     try:
-        return await delete_rule_service(user_id, rule_id, db)
+        return await delete_rule_service(rule_id, context.current_user, context.db)
     except RuleNotFoundError as err:
         raise HTTPException(status_code=404, detail="Rule not found.") from err

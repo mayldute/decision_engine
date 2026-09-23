@@ -9,7 +9,7 @@ from app.core.exceptions import (
     RuleNoLogicalOperator,
     RuleNotFoundError,
 )
-from app.database.models import Action, Condition, Rule
+from app.database.models import Action, Condition, Rule, User
 from app.modules.actions.services import get_action_or_raise
 from app.modules.conditions.services import get_condition_or_raise
 from app.modules.rules.schemas import (
@@ -28,25 +28,25 @@ def get_rules_query():
 
 
 async def get_rule_or_raise(
-    user_id: uuid.UUID, rule_id: uuid.UUID, db: AsyncSession
+    rule_id: uuid.UUID, current_user: User, db: AsyncSession
 ) -> Rule:
     result = await db.execute(
-        get_rules_query().where(Rule.id == rule_id, Rule.user_id == user_id)
+        get_rules_query().where(Rule.id == rule_id, Rule.user_id == current_user.id)
     )
 
     rule = result.scalar_one_or_none()
 
     if rule is None:
         raise RuleNotFoundError(
-            f"Rule with id {rule_id} for user with id {user_id} not found."
+            f"Rule with id {rule_id} for user with id {current_user.id} not found."
         )
 
     return rule
 
 
 async def create_rule_service(
-    user_id: uuid.UUID,
     payload: RuleCreate,
+    current_user: User,
     db: AsyncSession,
 ) -> RuleResponse:
 
@@ -76,7 +76,7 @@ async def create_rule_service(
         is_active=payload.is_active,
         conditions=conditions,
         action=action,
-        user_id=user_id,
+        user_id=current_user.id,
     )
 
     db.add(rule)
@@ -90,11 +90,11 @@ async def create_rule_service(
 
 
 async def get_all_rules_service(
-    user_id: uuid.UUID, skip: int, limit: int, db: AsyncSession
+    skip: int, limit: int, current_user: User, db: AsyncSession
 ) -> list[RuleResponse]:
     result = await db.execute(
         get_rules_query()
-        .where(Rule.user_id == user_id)
+        .where(Rule.user_id == current_user.id)
         .order_by(Rule.id)
         .offset(skip)
         .limit(limit)
@@ -106,17 +106,17 @@ async def get_all_rules_service(
 
 
 async def get_rule_service(
-    user_id: uuid.UUID, rule_id: uuid.UUID, db: AsyncSession
+    rule_id: uuid.UUID, current_user: User, db: AsyncSession
 ) -> RuleResponse:
-    rule = await get_rule_or_raise(user_id, rule_id, db)
+    rule = await get_rule_or_raise(rule_id, current_user, db)
 
     return RuleResponse.model_validate(rule)
 
 
 async def update_rule_service(
-    user_id: uuid.UUID, rule_id: uuid.UUID, payload: RuleUpdate, db: AsyncSession
+    rule_id: uuid.UUID, payload: RuleUpdate, current_user: User, db: AsyncSession
 ) -> RuleResponse:
-    rule = await get_rule_or_raise(user_id, rule_id, db)
+    rule = await get_rule_or_raise(rule_id, current_user, db)
 
     data = payload.model_dump(exclude_unset=True)
 
@@ -161,9 +161,10 @@ async def update_rule_service(
         db.add(action)
         rule.action = action
 
-    # Multiple conditions require a logical operator.
-    # Preserve the existing one when omitted.
-    if len(conditions) > 1:
+    # Clear the operator for a single condition; otherwise require one.
+    if len(conditions) == 1:
+        rule.logical_operator = None
+    elif len(conditions) > 1:
         logical_operator = data.get(
             "logical_operator",
             rule.logical_operator,
@@ -189,9 +190,9 @@ async def update_rule_service(
 
 
 async def delete_rule_service(
-    user_id: uuid.UUID, rule_id: uuid.UUID, db: AsyncSession
+    rule_id: uuid.UUID, current_user: User, db: AsyncSession
 ) -> RuleDeleteResponse:
-    rule = await get_rule_or_raise(user_id, rule_id, db)
+    rule = await get_rule_or_raise(rule_id, current_user, db)
 
     await db.delete(rule)
     await db.commit()

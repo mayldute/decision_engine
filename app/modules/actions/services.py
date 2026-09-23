@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ActionNotFoundError
-from app.database.models import Action
+from app.database.models import Action, User
 from app.modules.actions.schemas import (
     ActionCreate,
     ActionDeleteResponse,
@@ -13,8 +13,13 @@ from app.modules.actions.schemas import (
 )
 
 
-async def get_action_or_raise(action_id: uuid.UUID, db: AsyncSession) -> Action:
-    action = await db.get(Action, action_id)
+async def get_action_or_raise(
+    action_id: uuid.UUID, current_user: User, db: AsyncSession
+) -> Action:
+    result = await db.execute(
+        select(Action).where(Action.id == action_id, Action.user_id == current_user.id)
+    )
+    action = result.scalar_one_or_none()
 
     if not action:
         raise ActionNotFoundError(f"Action with id {action_id} not found.")
@@ -23,9 +28,9 @@ async def get_action_or_raise(action_id: uuid.UUID, db: AsyncSession) -> Action:
 
 
 async def create_action_service(
-    payload: ActionCreate, db: AsyncSession
+    payload: ActionCreate, current_user: User, db: AsyncSession
 ) -> ActionResponse:
-    action = Action(**payload.model_dump())
+    action = Action(**payload.model_dump(), user_id=current_user.id)
 
     db.add(action)
     await db.commit()
@@ -35,26 +40,32 @@ async def create_action_service(
 
 
 async def get_all_actions_service(
-    skip: int, limit: int, db: AsyncSession
+    skip: int, limit: int, current_user: User, db: AsyncSession
 ) -> list[ActionResponse]:
     result = await db.execute(
-        select(Action).order_by(Action.id).offset(skip).limit(limit)
+        select(Action)
+        .where(Action.user_id == current_user.id)
+        .order_by(Action.id)
+        .offset(skip)
+        .limit(limit)
     )
     actions = result.scalars().all()
 
     return [ActionResponse.model_validate(action) for action in actions]
 
 
-async def get_action_service(action_id: uuid.UUID, db: AsyncSession) -> ActionResponse:
-    action = await get_action_or_raise(action_id, db)
+async def get_action_service(
+    action_id: uuid.UUID, current_user: User, db: AsyncSession
+) -> ActionResponse:
+    action = await get_action_or_raise(action_id, current_user, db)
 
     return ActionResponse.model_validate(action)
 
 
 async def update_action_service(
-    action_id: uuid.UUID, payload: ActionUpdate, db: AsyncSession
+    action_id: uuid.UUID, payload: ActionUpdate, current_user: User, db: AsyncSession
 ) -> ActionResponse:
-    action = await get_action_or_raise(action_id, db)
+    action = await get_action_or_raise(action_id, current_user, db)
 
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(action, key, value)
@@ -66,9 +77,9 @@ async def update_action_service(
 
 
 async def delete_action_service(
-    action_id: uuid.UUID, db: AsyncSession
+    action_id: uuid.UUID, current_user: User, db: AsyncSession
 ) -> ActionDeleteResponse:
-    action = await get_action_or_raise(action_id, db)
+    action = await get_action_or_raise(action_id, current_user, db)
 
     await db.delete(action)
     await db.commit()

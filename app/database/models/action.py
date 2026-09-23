@@ -1,7 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -9,6 +9,7 @@ from app.database.base import Base
 
 if TYPE_CHECKING:
     from app.database.models.rule import Rule
+    from app.database.models.user import User
 
 
 class Action(Base):
@@ -25,3 +26,13 @@ class Action(Base):
     rules: Mapped[list["Rule"]] = relationship(
         back_populates="action",
     )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+    )
+    user: Mapped["User"] = relationship(back_populates="actions")

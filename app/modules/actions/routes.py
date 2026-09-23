@@ -1,10 +1,9 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ActionNotFoundError
-from app.database.dependencies import get_db
+from app.database.dependencies import CommonContext, get_common_context
 from app.modules.actions.schemas import (
     ActionCreate,
     ActionDeleteResponse,
@@ -28,8 +27,10 @@ router = APIRouter(prefix="/actions", tags=["[actions] actions"])
     summary="Create action.",
     status_code=201,
 )
-async def create_action(payload: ActionCreate, db: AsyncSession = Depends(get_db)):
-    return await create_action_service(payload, db)
+async def create_action(
+    payload: ActionCreate, context: CommonContext = Depends(get_common_context)
+):
+    return await create_action_service(payload, context.current_user, context.db)
 
 
 @router.get(
@@ -41,9 +42,9 @@ async def create_action(payload: ActionCreate, db: AsyncSession = Depends(get_db
 async def get_actions(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    db: AsyncSession = Depends(get_db),
+    context: CommonContext = Depends(get_common_context),
 ):
-    return await get_all_actions_service(skip, limit, db)
+    return await get_all_actions_service(skip, limit, context.current_user, context.db)
 
 
 @router.get(
@@ -52,9 +53,11 @@ async def get_actions(
     summary="Get action by ID.",
     status_code=200,
 )
-async def get_action_by_id(action_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_action_by_id(
+    action_id: uuid.UUID, context: CommonContext = Depends(get_common_context)
+):
     try:
-        return await get_action_service(action_id, db)
+        return await get_action_service(action_id, context.current_user, context.db)
     except ActionNotFoundError as err:
         raise HTTPException(status_code=404, detail="Action not found.") from err
 
@@ -66,10 +69,14 @@ async def get_action_by_id(action_id: uuid.UUID, db: AsyncSession = Depends(get_
     status_code=200,
 )
 async def update_action(
-    action_id: uuid.UUID, payload: ActionUpdate, db: AsyncSession = Depends(get_db)
+    action_id: uuid.UUID,
+    payload: ActionUpdate,
+    context: CommonContext = Depends(get_common_context),
 ):
     try:
-        return await update_action_service(action_id, payload, db)
+        return await update_action_service(
+            action_id, payload, context.current_user, context.db
+        )
     except ActionNotFoundError as err:
         raise HTTPException(status_code=404, detail="Action not found.") from err
 
@@ -80,8 +87,10 @@ async def update_action(
     summary="Delete action by ID.",
     status_code=200,
 )
-async def delete_action(action_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def delete_action(
+    action_id: uuid.UUID, context: CommonContext = Depends(get_common_context)
+):
     try:
-        return await delete_action_service(action_id, db)
+        return await delete_action_service(action_id, context.current_user, context.db)
     except ActionNotFoundError as err:
         raise HTTPException(status_code=404, detail="Action not found.") from err

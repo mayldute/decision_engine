@@ -1,16 +1,16 @@
-import uuid
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.rule import Rule
+from app.database.models.rule import Rule
+from app.database.models.user import User
 from app.modules.evaluations.schemas import EvaluationCreate, EvaluationRuleCreate
 from app.modules.evaluations.services import create_evaluation_service
 
 
 async def engine_service(
-    user_id: uuid.UUID, input_data: dict, db: AsyncSession
+    input_data: dict, current_user: User, db: AsyncSession
 ) -> dict:
     query_result = await db.execute(
         select(Rule)
@@ -19,7 +19,7 @@ async def engine_service(
             selectinload(Rule.action),
         )
         .where(
-            Rule.user_id == user_id,
+            Rule.user_id == current_user.id,
             Rule.is_active.is_(True),
         )
         .order_by(Rule.priority.desc())
@@ -64,6 +64,6 @@ async def engine_service(
 
     payload = EvaluationCreate(input=evaluation_input)
 
-    await create_evaluation_service(user_id, payload, results, db)
+    await create_evaluation_service(payload, results, current_user, db)
 
     return input_data

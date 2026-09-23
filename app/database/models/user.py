@@ -12,6 +12,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 
 if TYPE_CHECKING:
+    from app.database.models.action import Action
+    from app.database.models.condition import Condition
     from app.database.models.evaluation import Evaluation
     from app.database.models.rule import Rule
     from app.database.models.token import RefreshToken
@@ -37,6 +39,10 @@ class User(Base):
     )
 
     rules: Mapped[list["Rule"]] = relationship(back_populates="user")
+
+    conditions: Mapped[list["Condition"]] = relationship(back_populates="user")
+
+    actions: Mapped[list["Action"]] = relationship(back_populates="user")
 
     evaluations: Mapped[list["Evaluation"]] = relationship(back_populates="user")
 

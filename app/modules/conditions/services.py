@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConditionNotFoundError
-from app.database.models import Condition
+from app.database.models import Condition, User
 from app.modules.conditions.schemas import (
     ConditionCreate,
     ConditionDeleteResponse,
@@ -14,9 +14,14 @@ from app.modules.conditions.schemas import (
 
 
 async def get_condition_or_raise(
-    condition_id: uuid.UUID, db: AsyncSession
+    condition_id: uuid.UUID, current_user: User, db: AsyncSession
 ) -> Condition:
-    condition = await db.get(Condition, condition_id)
+    result = await db.execute(
+        select(Condition).where(
+            Condition.id == condition_id, Condition.user_id == current_user.id
+        )
+    )
+    condition = result.scalar_one_or_none()
 
     if not condition:
         raise ConditionNotFoundError(f"Condition with id {condition_id} not found.")
@@ -25,9 +30,9 @@ async def get_condition_or_raise(
 
 
 async def create_condition_service(
-    payload: ConditionCreate, db: AsyncSession
+    payload: ConditionCreate, current_user: User, db: AsyncSession
 ) -> ConditionResponse:
-    condition = Condition(**payload.model_dump())
+    condition = Condition(**payload.model_dump(), user_id=current_user.id)
     db.add(condition)
     await db.commit()
     await db.refresh(condition)
@@ -36,10 +41,14 @@ async def create_condition_service(
 
 
 async def get_all_conditions_service(
-    skip: int, limit: int, db: AsyncSession
+    skip: int, limit: int, current_user: User, db: AsyncSession
 ) -> list[ConditionResponse]:
     result = await db.execute(
-        select(Condition).order_by(Condition.id).offset(skip).limit(limit)
+        select(Condition)
+        .where(Condition.user_id == current_user.id)
+        .order_by(Condition.id)
+        .offset(skip)
+        .limit(limit)
     )
     conditions = result.scalars().all()
 
@@ -47,17 +56,20 @@ async def get_all_conditions_service(
 
 
 async def get_condition_service(
-    condition_id: uuid.UUID, db: AsyncSession
+    condition_id: uuid.UUID, current_user: User, db: AsyncSession
 ) -> ConditionResponse:
-    condition = await get_condition_or_raise(condition_id, db)
+    condition = await get_condition_or_raise(condition_id, current_user, db)
 
     return ConditionResponse.model_validate(condition)
 
 
 async def update_condition_service(
-    condition_id: uuid.UUID, payload: ConditionUpdate, db: AsyncSession
+    condition_id: uuid.UUID,
+    payload: ConditionUpdate,
+    current_user: User,
+    db: AsyncSession,
 ) -> ConditionResponse:
-    condition = await get_condition_or_raise(condition_id, db)
+    condition = await get_condition_or_raise(condition_id, current_user, db)
 
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(condition, key, value)
@@ -69,9 +81,9 @@ async def update_condition_service(
 
 
 async def delete_condition_service(
-    condition_id: uuid.UUID, db: AsyncSession
+    condition_id: uuid.UUID, current_user: User, db: AsyncSession
 ) -> ConditionDeleteResponse:
-    condition = await get_condition_or_raise(condition_id, db)
+    condition = await get_condition_or_raise(condition_id, current_user, db)
 
     await db.delete(condition)
     await db.commit()
