@@ -2,7 +2,7 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.models.enums import LogicalOperator
+from app.database.models.enums import LogicalOperator
 from app.modules.actions.schemas import ActionCreate, ActionResponse
 from app.modules.conditions.schemas import ConditionCreate, ConditionResponse
 

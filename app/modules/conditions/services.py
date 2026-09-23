@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConditionNotFoundError
-from app.models import Condition
+from app.database.models import Condition
 from app.modules.conditions.schemas import (
     ConditionCreate,
     ConditionDeleteResponse,

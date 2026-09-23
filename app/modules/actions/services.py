@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ActionNotFoundError
-from app.models import Action
+from app.database.models import Action
 from app.modules.actions.schemas import (
     ActionCreate,
     ActionDeleteResponse,

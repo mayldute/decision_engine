@@ -1,12 +1,16 @@
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Enum, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
-from app.models.enums import ComparisonOperator
-from app.models.rules_conditions import rule_condition_association
+from app.database.models.enums import ComparisonOperator
+from app.database.models.rules_conditions import rule_condition_association
+
+if TYPE_CHECKING:
+    from app.database.models.rule import Rule
 
 
 class Condition(Base):

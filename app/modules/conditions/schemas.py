@@ -2,7 +2,7 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
-from app.models.enums import ComparisonOperator
+from app.database.models.enums import ComparisonOperator
 
 
 class ConditionCreate(BaseModel):

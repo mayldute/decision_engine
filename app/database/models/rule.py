@@ -1,5 +1,6 @@
 import uuid
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -14,9 +15,15 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
-from app.models.enums import LogicalOperator
-from app.models.evaluation_rule import EvaluationRule
-from app.models.rules_conditions import rule_condition_association
+from app.database.models.enums import LogicalOperator
+from app.database.models.evaluation_rule import EvaluationRule
+from app.database.models.rules_conditions import rule_condition_association
+
+if TYPE_CHECKING:
+    from app.database.models.action import Action
+    from app.database.models.condition import Condition
+    from app.database.models.evaluation_rule import EvaluationRule
+    from app.database.models.user import User
 
 
 class Rule(Base):
@@ -61,7 +68,8 @@ class Rule(Base):
 
     action: Mapped["Action"] = relationship(back_populates="rules")
 
-    user_id: Mapped[UUID] = mapped_column(
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey(
             "users.id",
             ondelete="CASCADE",

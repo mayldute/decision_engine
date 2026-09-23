@@ -9,7 +9,7 @@ from app.core.exceptions import (
     RuleNoLogicalOperator,
     RuleNotFoundError,
 )
-from app.models import Action, Condition, Rule
+from app.database.models import Action, Condition, Rule
 from app.modules.actions.services import get_action_or_raise
 from app.modules.conditions.services import get_condition_or_raise
 from app.modules.rules.schemas import (

@@ -1,11 +1,16 @@
 import uuid
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
+
+if TYPE_CHECKING:
+    from app.database.models.evaluation_rule import EvaluationRule
+    from app.database.models.user import User
 
 
 class Evaluation(Base):
@@ -22,7 +27,8 @@ class Evaluation(Base):
 
     input: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
-    user_id: Mapped[UUID] = mapped_column(
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey(
             "users.id",
             ondelete="CASCADE",
