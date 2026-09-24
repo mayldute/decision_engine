@@ -38,10 +38,22 @@ async def test_get_all_conditions_pagination(authenticated_client):
 
     data = response.json()
 
-    assert len(data) == 2
+    first_ids = {item["id"] for item in data}
+
+    response = await authenticated_client.get(
+        "/api/v1/conditions/",
+        params={"skip": 2, "limit": 2},
+    )
+
+    assert response.status_code == 200
+
+    second_data = response.json()
+
+    assert len(second_data) == 2
+    assert not first_ids.intersection(item["id"] for item in second_data)
 
 
-async def test_get_condition(authenticated_client, condition_data):
+async def test_get_condition(condition_data, authenticated_client):
     response = await authenticated_client.get(
         f"/api/v1/conditions/{condition_data['id']}"
     )
@@ -56,7 +68,7 @@ async def test_get_condition(authenticated_client, condition_data):
     assert data["value"] == 25
 
 
-async def test_update_condition(authenticated_client, condition_data):
+async def test_update_condition(condition_data, authenticated_client):
     response = await authenticated_client.patch(
         f"/api/v1/conditions/{condition_data['id']}",
         json={"value": 10},
@@ -71,7 +83,7 @@ async def test_update_condition(authenticated_client, condition_data):
     assert data["value"] == 10
 
 
-async def test_delete_condition(authenticated_client, condition_data):
+async def test_delete_condition(condition_data, authenticated_client):
     response = await authenticated_client.delete(
         f"/api/v1/conditions/{condition_data['id']}"
     )
@@ -82,3 +94,9 @@ async def test_delete_condition(authenticated_client, condition_data):
 
     assert data["message"] == "Condition successfully deleted."
     assert data["condition_id"] == condition_data["id"]
+
+    response = await authenticated_client.get(
+        f"/api/v1/conditions/{condition_data['id']}"
+    )
+
+    assert response.status_code == 404

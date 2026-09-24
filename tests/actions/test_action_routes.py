@@ -35,10 +35,22 @@ async def test_get_all_actions_pagination(authenticated_client):
 
     data = response.json()
 
-    assert len(data) == 2
+    first_ids = {item["id"] for item in data}
+
+    response = await authenticated_client.get(
+        "/api/v1/actions/",
+        params={"skip": 2, "limit": 2},
+    )
+
+    assert response.status_code == 200
+
+    second_data = response.json()
+
+    assert len(second_data) == 2
+    assert not first_ids.intersection(item["id"] for item in second_data)
 
 
-async def test_get_actions(authenticated_client, action_data):
+async def test_get_actions(action_data, authenticated_client):
     response = await authenticated_client.get(f"/api/v1/actions/{action_data['id']}")
 
     assert response.status_code == 200
@@ -50,7 +62,7 @@ async def test_get_actions(authenticated_client, action_data):
     assert data["value"] == 15.5
 
 
-async def test_update_action(authenticated_client, action_data):
+async def test_update_action(action_data, authenticated_client):
     response = await authenticated_client.patch(
         f"/api/v1/actions/{action_data['id']}",
         json={"value": 5},
@@ -64,7 +76,7 @@ async def test_update_action(authenticated_client, action_data):
     assert data["value"] == 5
 
 
-async def test_delete_action(authenticated_client, action_data):
+async def test_delete_action(action_data, authenticated_client):
     response = await authenticated_client.delete(f"/api/v1/actions/{action_data['id']}")
 
     assert response.status_code == 200
@@ -73,3 +85,7 @@ async def test_delete_action(authenticated_client, action_data):
 
     assert data["message"] == "Action successfully deleted."
     assert data["action_id"] == action_data["id"]
+
+    response = await authenticated_client.get(f"/api/v1/actions/{action_data['id']}")
+
+    assert response.status_code == 404

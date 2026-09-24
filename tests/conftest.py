@@ -18,6 +18,8 @@ from app.modules.actions.schemas import ActionCreate
 from app.modules.actions.services import create_action_service
 from app.modules.conditions.schemas import ConditionCreate
 from app.modules.conditions.services import create_condition_service
+from app.modules.rules.schemas import RuleCreate
+from app.modules.rules.services import create_rule_service
 
 test_engine = create_async_engine(
     settings.database.test_database_url,
@@ -188,6 +190,59 @@ async def action_data(authenticated_client):
 
     response = await authenticated_client.post(
         "/api/v1/actions/",
+        json=payload,
+    )
+
+    assert response.status_code == 201
+
+    return response.json()
+
+
+@pytest_asyncio.fixture
+async def rule(action, user, db_session):
+    condition_ids = []
+
+    for i in range(3):
+        payload = ConditionCreate(
+            field=f"temperature_{i}",
+            operator="==",
+            value=i,
+        )
+
+        condition = await create_condition_service(payload, user, db_session)
+        condition_ids.append(condition.id)
+
+    payload = RuleCreate(
+        name="test_rule",
+        description="test_rule_description",
+        logical_operator="AND",
+        priority=99,
+        is_active=True,
+        condition_ids=condition_ids,
+        action_id=action.id,
+    )
+
+    return await create_rule_service(
+        payload=payload,
+        current_user=user,
+        db=db_session,
+    )
+
+
+@pytest_asyncio.fixture
+async def rule_data(condition_data, action_data, authenticated_client):
+    payload = {
+        "name": "test_rule",
+        "description": "test_rule_description",
+        "logical_operator": None,
+        "priority": 99,
+        "is_active": True,
+        "condition_ids": [condition_data["id"]],
+        "action_id": action_data["id"],
+    }
+
+    response = await authenticated_client.post(
+        "/api/v1/rules/",
         json=payload,
     )
 

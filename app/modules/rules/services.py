@@ -54,18 +54,18 @@ async def create_rule_service(
 
     if payload.condition_ids is not None:
         for condition_id in payload.condition_ids:
-            condition = await get_condition_or_raise(condition_id, db)
+            condition = await get_condition_or_raise(condition_id, current_user, db)
             conditions.append(condition)
     else:
         for new_condition in payload.new_conditions:
-            condition = Condition(**new_condition.model_dump())
+            condition = Condition(**new_condition.model_dump(), user_id=current_user.id)
             db.add(condition)
             conditions.append(condition)
 
     if payload.action_id is not None:
-        action = await get_action_or_raise(payload.action_id, db)
+        action = await get_action_or_raise(payload.action_id, current_user, db)
     else:
-        action = Action(**payload.new_action.model_dump())
+        action = Action(**payload.new_action.model_dump(), user_id=current_user.id)
         db.add(action)
 
     rule = Rule(
@@ -137,7 +137,7 @@ async def update_rule_service(
         conditions = []
 
         for condition_id in condition_ids_data:
-            condition = await get_condition_or_raise(condition_id, db)
+            condition = await get_condition_or_raise(condition_id, current_user, db)
             conditions.append(condition)
 
         rule.conditions = conditions
@@ -145,7 +145,7 @@ async def update_rule_service(
         conditions = []
 
         for new_condition in new_conditions_data:
-            condition = Condition(**new_condition)
+            condition = Condition(**new_condition, user_id=current_user.id)
             db.add(condition)
             conditions.append(condition)
 
@@ -155,9 +155,9 @@ async def update_rule_service(
 
     # Replace the action with an existing one or create and assign a new action.
     if action_id_data is not None:
-        rule.action = await get_action_or_raise(action_id_data, db)
+        rule.action = await get_action_or_raise(action_id_data, current_user, db)
     elif new_action_data is not None:
-        action = Action(**new_action_data)
+        action = Action(**new_action_data, user_id=current_user.id)
         db.add(action)
         rule.action = action
 
