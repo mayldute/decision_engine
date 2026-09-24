@@ -20,6 +20,8 @@ from app.modules.conditions.schemas import ConditionCreate
 from app.modules.conditions.services import create_condition_service
 from app.modules.rules.schemas import RuleCreate
 from app.modules.rules.services import create_rule_service
+from app.modules.evaluations.schemas import EvaluationCreate, EvaluationRuleCreate
+from app.modules.evaluations.services import create_evaluation_service
 
 test_engine = create_async_engine(
     settings.database.test_database_url,
@@ -60,7 +62,8 @@ async def clean_database():
                     conditions,
                     actions,
                     rules,
-                    evaluations
+                    evaluations,
+                    users
                 CASCADE
                 """
             )
@@ -69,17 +72,7 @@ async def clean_database():
 
 
 @pytest_asyncio.fixture
-async def authenticated_client(db_session):
-    user = User(
-        nickname="testuser",
-        email="test@example.com",
-        hashed_password=hash_password("TestPassword123"),
-    )
-
-    db_session.add(user)
-    await db_session.commit()
-    await db_session.refresh(user)
-
+async def authenticated_client(user, db_session):
     access_token = create_access_token(
         {
             "sub": str(user.id),
@@ -249,3 +242,23 @@ async def rule_data(condition_data, action_data, authenticated_client):
     assert response.status_code == 201
 
     return response.json()
+
+
+@pytest_asyncio.fixture
+async def evaluation(rule, user, db_session):
+    payload = EvaluationCreate(
+        input={"age": 25, "country": "US", "amount": 1500},
+    )
+
+    evaluation_result = EvaluationRuleCreate(
+        rule_id=rule.id,
+        is_matched=True,
+        resulting_input={"age": 10, "country": "US", "amount": 1500},
+    )
+
+    return await create_evaluation_service(
+        payload=payload,
+        evaluation_results=[evaluation_result],
+        current_user=user,
+        db=db_session,
+    )  

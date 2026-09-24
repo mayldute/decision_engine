@@ -13,6 +13,7 @@ from app.modules.evaluations.schemas import (
     EvaluationListResponse,
     EvaluationResponse,
     EvaluationRuleCreate,
+    EvaluationRuleResponse,
 )
 
 
@@ -41,6 +42,17 @@ async def create_evaluation_service(
 
     await db.commit()
 
+    result = await db.execute(
+        select(Evaluation)
+        .options(selectinload(Evaluation.evaluation_rules))
+        .where(Evaluation.id == evaluation.id)
+    )
+
+    evaluation = result.scalar_one()
+
+    return EvaluationResponse.model_validate(evaluation)
+
+
 
 async def get_all_evaluations_service(
     skip: int, limit: int, current_user: User, db: AsyncSession
@@ -66,7 +78,7 @@ async def get_evaluation_service(
     result = await db.execute(
         select(Evaluation)
         .options(
-            selectinload(Evaluation.evaluation_rules).selectinload(EvaluationRule.rule)
+            selectinload(Evaluation.evaluation_rules)
         )
         .where(
             Evaluation.id == evaluation_id,
@@ -77,6 +89,21 @@ async def get_evaluation_service(
     evaluation = result.scalar_one_or_none()
 
     if evaluation is None:
-        raise EvaluationNotFoundError(f"Evaluation with id {evaluation_id} not found.")
+        raise EvaluationNotFoundError(
+            f"Evaluation with id {evaluation_id} not found."
+        )
 
-    return EvaluationResponse.model_validate(evaluation)
+    return EvaluationResponse(
+        id=evaluation.id,
+        timestamp=evaluation.timestamp,
+        input=evaluation.input,
+        evaluation_rules=[
+            EvaluationRuleResponse(
+                evaluation_id=evaluation_rule.evaluation_id,
+                rule_id=evaluation_rule.rule_id,
+                is_matched=evaluation_rule.is_matched,
+                resulting_input=evaluation_rule.resulting_input,
+            )
+            for evaluation_rule in evaluation.evaluation_rules
+        ],
+    )

@@ -29,9 +29,11 @@ class EvaluationRuleResponse(BaseModel):
 
     resulting_input: dict = Field(
         ...,
-        description="Action result.",
+        description="Rule result.",
         examples=[{"age": 10, "country": "US", "amount": 1500}],
     )
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class EvaluationResponse(BaseModel):
