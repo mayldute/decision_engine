@@ -34,3 +34,9 @@ class LogicalOperator(enum.StrEnum):
         }
 
         return operators[self](left_condition, right_condition)
+
+
+class ActionType(enum.StrEnum):
+    SET_VALUE = "SET_VALUE"
+    REJECT = "REJECT"
+    MODIFY_VALUE = "MODIFY_VALUE"
