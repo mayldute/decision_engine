@@ -2,9 +2,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.database.models.enums import ActionType
 from app.database.models.rule import Rule
 from app.database.models.user import User
-from app.modules.evaluations.schemas import EvaluationCreate, EvaluationRuleCreate
+from app.modules.evaluations.schemas import (
+    EvaluationCreate,
+    EvaluationRuleCreate,
+)
 from app.modules.evaluations.services import create_evaluation_service
 
 
@@ -25,8 +29,11 @@ async def engine_service(
     )
 
     rules = query_result.scalars().all()
+
     evaluation_input = input_data.copy()
+    input_data = input_data.copy()
     results: list[EvaluationRuleCreate] = []
+    status = "success"
 
     for rule in rules:
         condition_results = []
@@ -38,7 +45,6 @@ async def engine_service(
                 input_value,
                 condition.value,
             )
-
             condition_results.append(result)
 
         rule_result = condition_results[0]
@@ -51,7 +57,22 @@ async def engine_service(
                 )
 
         if rule_result:
-            input_data[rule.action.field] = rule.action.value
+            if rule.action.type == ActionType.SET_VALUE:
+                input_data[rule.action.field] = rule.action.value
+
+            elif rule.action.type == ActionType.REJECT:
+                results.append(
+                    EvaluationRuleCreate(
+                        rule_id=rule.id,
+                        is_matched=True,
+                        resulting_input=input_data.copy(),
+                    )
+                )
+                status = "rejected"
+                break
+
+            elif rule.action.type == ActionType.MODIFY_VALUE:
+                pass  # TODO: implement modification behavior
 
         results.append(
             EvaluationRuleCreate(
@@ -62,7 +83,9 @@ async def engine_service(
         )
 
     payload = EvaluationCreate(input=evaluation_input)
-
     await create_evaluation_service(payload, results, current_user, db)
 
-    return input_data
+    return {
+        "status": status,
+        "input": input_data,
+    }
