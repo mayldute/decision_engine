@@ -7,7 +7,9 @@ from app.database.models.enums import ActionType
 
 class ActionCreate(BaseModel):
     field: str = Field(..., description="Name of the field.", examples=["weather"])
-    type: ActionType = Field(..., description="Type of acftion.", examples=["SET_VALUE"])
+    type: ActionType = Field(
+        ..., description="Type of acftion.", examples=["SET_VALUE"]
+    )
     value: JsonValue = Field(
         ...,
         description="Value.",
@@ -22,10 +24,12 @@ class ActionResponse(BaseModel):
         examples=["550e8400-e29b-41d4-a716-446655440000"],
     )
     field: str = Field(..., description="Name of the field.", examples=["weather"])
-    type: ActionType = Field(..., description="Type of acftion.", examples=["SET_VALUE"])
+    type: ActionType = Field(
+        ..., description="Type of acftion.", examples=["SET_VALUE"]
+    )
     value: JsonValue = Field(
-        ..., 
-        description="Value.", 
+        ...,
+        description="Value.",
         examples=["warm"],
     )
 
@@ -38,12 +42,12 @@ class ActionUpdate(BaseModel):
     )
     type: ActionType | None = Field(
         default=None,
-        description="Type of acftion.", 
+        description="Type of acftion.",
         examples=["SET_VALUE"],
     )
     value: JsonValue | None = Field(
         default=None,
-        description="Value.", 
+        description="Value.",
         examples=["warm"],
     )
 

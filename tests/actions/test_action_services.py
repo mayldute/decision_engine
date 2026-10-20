@@ -3,6 +3,7 @@ import uuid
 import pytest
 
 from app.core.exceptions import ActionNotFoundError
+from app.database.models.enums import ActionType
 from app.modules.actions.schemas import ActionCreate, ActionUpdate
 from app.modules.actions.services import (
     create_action_service,
@@ -16,6 +17,7 @@ from app.modules.actions.services import (
 
 async def test_create_action(action):
     assert action.field == "temperature"
+    assert action.type == ActionType.SET_VALUE
     assert action.value == 15.5
     assert action.id is not None
 
@@ -31,6 +33,7 @@ async def test_get_all_actions(action, user, db_session):
     created_action = next(act for act in result if act.id == action.id)
 
     assert created_action.field == "temperature"
+    assert created_action.type == ActionType.SET_VALUE
     assert created_action.value == 15.5
 
 
@@ -38,6 +41,7 @@ async def test_get_all_actions_pagination(user, db_session):
     for i in range(5):
         payload = ActionCreate(
             field=f"temperature_{i}",
+            type=ActionType.SET_VALUE,
             value=i,
         )
 
@@ -87,6 +91,7 @@ async def test_get_action(action, user, db_session):
 
     assert result.id == action.id
     assert result.field == "temperature"
+    assert result.type == ActionType.SET_VALUE
     assert result.value == 15.5
 
 
@@ -101,7 +106,23 @@ async def test_update_action(action, user, db_session):
     )
 
     assert result.field == "temperature"
+    assert result.type == ActionType.SET_VALUE
     assert result.value == 5
+
+
+async def test_update_action_type(action, user, db_session):
+    payload = ActionUpdate(type=ActionType.REJECT)
+
+    result = await update_action_service(
+        action.id,
+        payload,
+        user,
+        db_session,
+    )
+
+    assert result.field == "temperature"
+    assert result.type == ActionType.REJECT
+    assert result.value == 15.5
 
 
 async def test_delete_action(action, user, db_session):

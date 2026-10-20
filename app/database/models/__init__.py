@@ -1,6 +1,6 @@
 from app.database.models.action import Action
 from app.database.models.condition import Condition
-from app.database.models.enums import ComparisonOperator, LogicalOperator, ActionType
+from app.database.models.enums import ActionType, ComparisonOperator, LogicalOperator
 from app.database.models.evaluation import Evaluation
 from app.database.models.evaluation_rule import EvaluationRule
 from app.database.models.rule import Rule

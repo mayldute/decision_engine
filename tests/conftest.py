@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
-from app.core.security import hash_password
 from app.core.tokens import create_access_token
 from app.database.dependencies import get_db
 from app.database.models.user import User
@@ -18,10 +17,10 @@ from app.modules.actions.schemas import ActionCreate
 from app.modules.actions.services import create_action_service
 from app.modules.conditions.schemas import ConditionCreate
 from app.modules.conditions.services import create_condition_service
-from app.modules.rules.schemas import RuleCreate
-from app.modules.rules.services import create_rule_service
 from app.modules.evaluations.schemas import EvaluationCreate, EvaluationRuleCreate
 from app.modules.evaluations.services import create_evaluation_service
+from app.modules.rules.schemas import RuleCreate
+from app.modules.rules.services import create_rule_service
 
 test_engine = create_async_engine(
     settings.database.test_database_url,
@@ -164,6 +163,7 @@ async def condition_data(authenticated_client):
 async def action(user, db_session):
     payload = ActionCreate(
         field="temperature",
+        type="SET_VALUE",
         value=15.5,
     )
 
@@ -178,6 +178,7 @@ async def action(user, db_session):
 async def action_data(authenticated_client):
     payload = {
         "field": "temperature",
+        "type": "SET_VALUE",
         "value": 15.5,
     }
 
@@ -261,4 +262,4 @@ async def evaluation(rule, user, db_session):
         evaluation_results=[evaluation_result],
         current_user=user,
         db=db_session,
-    )  
+    )

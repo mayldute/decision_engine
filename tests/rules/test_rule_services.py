@@ -259,6 +259,7 @@ async def test_update_rule_action(rule, user, db_session):
     new_action = await create_action_service(
         payload=ActionCreate(
             field="temperature",
+            type="SET_VALUE",
             value=30,
         ),
         current_user=user,
@@ -276,6 +277,7 @@ async def test_update_rule_action(rule, user, db_session):
 
     assert result.action.id == new_action.id
     assert result.action.field == "temperature"
+    assert result.action.type == "SET_VALUE"
     assert result.action.value == 30
 
 
@@ -283,6 +285,7 @@ async def test_update_rule_with_new_action(rule, user, db_session):
     new_data = RuleUpdate(
         new_action=ActionCreate(
             field="status",
+            type="SET_VALUE",
             value="approved",
         )
     )
@@ -295,6 +298,7 @@ async def test_update_rule_with_new_action(rule, user, db_session):
     )
 
     assert result.action.field == "status"
+    assert result.action.type == "SET_VALUE"
     assert result.action.value == "approved"
 
 

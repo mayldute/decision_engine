@@ -15,7 +15,11 @@ async def test_create_evaluation(evaluation, rule):
     assert evaluation.input == {"age": 25, "country": "US", "amount": 1500}
     assert evaluation.evaluation_rules[0].rule_id == rule.id
     assert evaluation.evaluation_rules[0].is_matched is True
-    assert evaluation.evaluation_rules[0].resulting_input == {"age": 10, "country": "US", "amount": 1500}
+    assert evaluation.evaluation_rules[0].resulting_input == {
+        "age": 10,
+        "country": "US",
+        "amount": 1500,
+    }
 
 
 async def test_get_all_evaluations(evaluation, user, db_session):
@@ -49,12 +53,12 @@ async def test_get_all_evaluations_pagination(rule, user, db_session):
         )
 
     first_page = await get_all_evaluations_service(
-            skip=0,
-            limit=2,
-            current_user=user,
-            db=db_session,
-        )
-    
+        skip=0,
+        limit=2,
+        current_user=user,
+        db=db_session,
+    )
+
     second_page = await get_all_evaluations_service(
         skip=2,
         limit=2,
@@ -76,15 +80,19 @@ async def test_get_all_evaluations_pagination(rule, user, db_session):
     assert first_page[0].id not in {evaluation.id for evaluation in second_page}
     assert first_page[0].id not in {evaluation.id for evaluation in last_page}
     assert second_page[0].id not in {evaluation.id for evaluation in last_page}
-    
-    
+
+
 async def test_get_evaluation(evaluation, rule, user, db_session):
     result = await get_evaluation_service(evaluation.id, user, db_session)
 
     assert result.input == {"age": 25, "country": "US", "amount": 1500}
     assert result.evaluation_rules[0].rule_id == rule.id
     assert result.evaluation_rules[0].is_matched is True
-    assert result.evaluation_rules[0].resulting_input == {"age": 10, "country": "US", "amount": 1500}
+    assert result.evaluation_rules[0].resulting_input == {
+        "age": 10,
+        "country": "US",
+        "amount": 1500,
+    }
 
 
 async def test_get_evaluation_not_found(user, db_session):

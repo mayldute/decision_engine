@@ -53,7 +53,6 @@ async def create_evaluation_service(
     return EvaluationResponse.model_validate(evaluation)
 
 
-
 async def get_all_evaluations_service(
     skip: int, limit: int, current_user: User, db: AsyncSession
 ) -> list[EvaluationListResponse]:
@@ -77,9 +76,7 @@ async def get_evaluation_service(
 ) -> EvaluationResponse:
     result = await db.execute(
         select(Evaluation)
-        .options(
-            selectinload(Evaluation.evaluation_rules)
-        )
+        .options(selectinload(Evaluation.evaluation_rules))
         .where(
             Evaluation.id == evaluation_id,
             Evaluation.user_id == current_user.id,
@@ -89,9 +86,7 @@ async def get_evaluation_service(
     evaluation = result.scalar_one_or_none()
 
     if evaluation is None:
-        raise EvaluationNotFoundError(
-            f"Evaluation with id {evaluation_id} not found."
-        )
+        raise EvaluationNotFoundError(f"Evaluation with id {evaluation_id} not found.")
 
     return EvaluationResponse(
         id=evaluation.id,

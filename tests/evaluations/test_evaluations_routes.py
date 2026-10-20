@@ -53,10 +53,7 @@ async def test_get_all_evaluations(rule, user, authenticated_client, db_session)
     assert not first_ids.intersection(item["id"] for item in second_data)
 
 
-
 async def test_get_evaluation(evaluation, authenticated_client):
-    response = await authenticated_client.get(
-        f"/api/v1/evaluations/{evaluation.id}"
-    )
+    response = await authenticated_client.get(f"/api/v1/evaluations/{evaluation.id}")
 
     assert response.status_code == 200

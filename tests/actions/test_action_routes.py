@@ -1,6 +1,7 @@
 async def test_create_action(authenticated_client):
     payload = {
         "field": "temperature",
+        "type": "SET_VALUE",
         "value": 15.5,
     }
 
@@ -11,6 +12,7 @@ async def test_create_action(authenticated_client):
     data = response.json()
 
     assert data["field"] == "temperature"
+    assert data["type"] == "SET_VALUE"
     assert data["value"] == 15.5
     assert "id" in data
 
@@ -21,6 +23,7 @@ async def test_get_all_actions_pagination(authenticated_client):
             "/api/v1/actions/",
             json={
                 "field": f"temperature_{i}",
+                "type": "SET_VALUE",
                 "value": i,
             },
         )
@@ -59,6 +62,7 @@ async def test_get_actions(action_data, authenticated_client):
 
     assert data["id"] == action_data["id"]
     assert data["field"] == "temperature"
+    assert data["type"] == "SET_VALUE"
     assert data["value"] == 15.5
 
 
@@ -73,6 +77,7 @@ async def test_update_action(action_data, authenticated_client):
     data = response.json()
 
     assert data["field"] == "temperature"
+    assert data["type"] == "SET_VALUE"
     assert data["value"] == 5
 
 
